@@ -1,0 +1,355 @@
+---
+name: Dummy
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: Please choose phase from the list
+        required: true
+        default: phase_dev
+        type: choice
+        options:
+          - phase0
+          - phase1
+          - phase2
+          - phase3
+          - phase4
+          - phase5
+          - phase6
+          - phase7
+          - phase8
+          - phase_prep_aws_use12x
+          - phase_prep_aws_usw24x
+          - phase_prep_all
+          - phase_stage
+          - phase_dev
+      start_step:
+        description: Step number to start on
+        required: true
+        type: number
+        default: 0
+      dry-run:
+        description: Enable DRY-RUN? No silence, no hubs-override, and tf plan only.
+        type: boolean
+        required: true
+        default: false
+      is_emergency:
+        description: Is this an emergency deployment?
+        type: boolean
+        required: true
+        default: false
+      force_replace:
+        description: Force replace VEDCs and PODs
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      branch_cicd:
+        description: cicd repo branch
+        required: true
+        default: main
+      branch_deployment:
+        description: deployment repo branch
+        required: true
+        default: main
+      branch_automation:
+        description: automation repo branch
+        required: true
+        default: main
+      branch_docs:
+        description: docs repo branch
+        required: true
+        default: main
+      branch_versions:
+        description: versions repo branch
+        required: true
+        default: main
+env:
+  AWS_DEFAULT_REGION: us-west-2
+defaults:
+  run:
+    shell: bash
+jobs:
+  prepare-dc-list-and-matrix:
+    name: "Step 0: Prepare DC List and Matrix for ${{ github.event.inputs.phase }}
+      run by ${{ github.actor }}"
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 0: Prepare DC List and Matrix"'
+  webex-notification-chim-creation:
+    name: "Step 1: Webex notification and CHIM deployment creation for ${{
+      github.event.inputs.phase }} run by ${{ github.actor }}"
+    needs:
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 1 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 1: Webex notification and CHIM deployment creation"'
+  add-silence:
+    name: "Step 2: Add silence for ${{ github.event.inputs.phase }} run by ${{
+      github.actor }}"
+    needs:
+      - webex-notification-chim-creation
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 2 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 2: Add silence"'
+  add-hub-override:
+    name: "Step 3: Add hub-override for ${{ github.event.inputs.phase }} run by ${{
+      github.actor }}"
+    needs:
+      - add-silence
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 3 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 3: Add hub-override"'
+  roll-vedc:
+    name: "Step 4: Roll VEDCs for Dummy DC"
+    needs:
+      - add-hub-override
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 4 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 4: Roll VEDCs"'
+  check-vdc-patch:
+    name: "Step 5: Check for VDC patch for ${{ github.event.inputs.phase }} run by
+      ${{ github.actor }}"
+    needs:
+      - roll-vedc
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 5 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 5: Check for VDC patch"'
+  phase-roll-verify-vdc:
+    name: "Step 5: Verify VDC for ${{ github.event.inputs.phase }} run by ${{
+      github.actor }}"
+    needs:
+      - roll-vedc
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 5 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 40
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 5: Verify VDC"'
+  terminate-pods:
+    name: "Step 5: Terminate PODs for Dummy DC before removing hubs-override"
+    needs:
+      - roll-vedc
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 5 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 5: Terminate PODs"'
+  remove-hub-override:
+    name: "Step 6: Remove hub-override for ${{ github.event.inputs.phase }} run by
+      ${{ github.actor }}"
+    needs:
+      - phase-roll-verify-vdc
+      - check-vdc-patch
+      - terminate-pods
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 6 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 6: Remove hub-override"'
+  roll-controlnode:
+    name: "Step 7: Roll controlnodes for Dummy DC"
+    needs:
+      - remove-hub-override
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 7 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 7: Roll controlnodes"'
+  verify-reddwarf:
+    name: "Step 8: Get total number of orgs using reddwarf cli for VEDCS and
+      verifying CN config in Dummy DC - run by ${{ github.actor }}"
+    needs:
+      - roll-controlnode
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 8 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 8: Verify reddwarf"'
+  roll-datanode:
+    name: "Step 9: Roll remaining Pods Resources for Dummy DC"
+    needs:
+      - verify-reddwarf
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 9 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 60
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 9: Roll remaining Pods Resources"'
+  check-pod-patch:
+    name: "Step 10: Check for POD patch for ${{ github.event.inputs.phase }} run by
+      ${{ github.actor }}"
+    needs:
+      - roll-datanode
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 10 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 10: Check for POD patch"'
+  phase-verify-pods:
+    name: "Step 10: Verify PODs for ${{ github.event.inputs.phase }} run by ${{
+      github.actor }}"
+    needs:
+      - roll-datanode
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 10 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 40
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 10: Verify PODs"'
+  check-datanode-status:
+    name: "Step 10: Checking datanode status for phase ${{ inputs.phase }} run by
+      ${{ github.actor }}"
+    needs:
+      - roll-datanode
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 10 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 10: Checking datanode status"'
+  check-canary-status:
+    name: "Step 11: Check canary status for ${{ github.event.inputs.phase }}"
+    needs:
+      - phase-verify-pods
+      - check-pod-patch
+      - check-datanode-status
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 11 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 11: Check canary status"'
+  remove-silence:
+    name: "Step 12: Remove silence for ${{ github.event.inputs.phase }} run by ${{
+      github.actor }}"
+    needs:
+      - check-canary-status
+      - prepare-dc-list-and-matrix
+    if: ${{ ! failure() && ! cancelled() && github.event.inputs.start_step <= 12 }}
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 12: Remove silence"'
+  post-webex-notification-chim-deployment-update:
+    if: ${{ always() }}
+    name: "Step 13: Post Webex notification and CHIM deployment update for ${{
+      github.event.inputs.phase }} run by ${{ github.actor }}"
+    needs:
+      - remove-silence
+      - prepare-dc-list-and-matrix
+    runs-on:
+      - self-hosted
+      - x64
+      - type:small
+      - env:cnhe-ops-prod
+    timeout-minutes: 20
+    steps:
+      - name: Dummy step
+        run: 'echo "Step 13: Post Webex notification and CHIM deployment update"'
+
